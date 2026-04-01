@@ -1,4 +1,4 @@
-# React Chat
+# React Chat - React Sandbox
 
 一个自包含的单 HTML 文件聊天界面，通过 Claude API 实现对话，并支持将可视化内容（图表、交互组件、游戏等）直接嵌入聊天流中渲染。
 
