@@ -1,163 +1,117 @@
-# React Chat - React Sandbox
+# Claude Chatbox — React Sandbox
 
-一个自包含的单 HTML 文件聊天界面，通过 Claude API 实现对话，并支持将可视化内容（图表、交互组件、游戏等）直接嵌入聊天流中渲染。
+一个轻量级、单文件的 AI 聊天界面，内置 React / HTML 可视化沙盒。无需 Tool Use，通过标记约定让 AI 直接在对话中生成可交互的 React 组件和 HTML 可视化。
 
-无需安装任何依赖，无需 Node.js，无需构建工具。下载一个文件，浏览器打开即用。
+## ✨ 特性
 
-## 功能
+- **双模式可视化** — 支持 `~~~REACT_VIZ` 和 `~~~HTML_VIZ` 两种标记，AI 的回复可直接渲染为可交互的组件
+- **React 沙盒** — 预装 React 18、Recharts、Tailwind CSS，支持所有 Hooks，即写即渲染
+- **HTML 沙盒** — 支持 Chart.js、Canvas、D3 等任意前端库
+- **多 API 兼容** — 同时支持 Anthropic 和 OpenAI 格式，兼容各类中转站（OpenRouter、One API 等）
+- **多模态输入** — 支持上传图片、粘贴图片 (Ctrl+V)，发送给视觉模型
+- **多配置管理** — 保存多套 API 配置，一键切换
+- **聊天记录持久化** — 支持保存/恢复、导出/导入 JSON
+- **联网搜索** — 可选的 DuckDuckGo 搜索集成
+- **源码下载** — 每个可视化组件都可单独下载为 `.html` 或 `.jsx` 文件
+- **单文件部署** — 零依赖，一个 HTML 文件即可运行
 
-**对话**
-- 支持 Anthropic 和 OpenAI 两种 API 格式，兼容各类第三方中转站
-- 可自由填写 API 端点、Key、模型名称
-- 上下文记忆（当前会话内）
-- 图片上传（点击按钮 / Ctrl+V 粘贴 / 多图）
-- 聊天记录保存到浏览器 / 导出导入 JSON 文件
+## 🚀 快速开始
 
-**可视化渲染**
-- **HTML 模式**：Claude 生成完整 HTML 代码，内嵌 Chart.js / D3 / Canvas / Three.js 等，直接在 iframe 中运行
-- **React 模式**：Claude 生成 JSX 代码，通过 Babel 在 iframe 内实时编译运行，预装 React 18 + Recharts + Tailwind CSS
-- 下载源码：HTML 模式下载 `.html` 文件，React 模式下载 `.jsx` 文件
-
-**工作原理**
-
-不依赖 Tool Use / Function Calling（兼容性最好），而是通过 System Prompt 约定特殊标记：
-
-```
-~~~REACT_VIZ
-export default function App() {
-  return <div className="p-4">Hello World</div>;
-}
-~~~
-```
-
-前端解析到标记后，提取代码并渲染到 sandboxed iframe 中。
-
-## 快速开始
-
-### 方式一：GitHub Pages（推荐）
-
-1. Fork 本仓库
-2. 进入仓库 Settings → Pages → Source 选 `main` 分支 → Save
-3. 访问 `https://你的用户名.github.io/仓库名/`
-4. 填写 API 配置，开始使用
-
-### 方式二：本地运行
+### 方式一：直接打开
 
 ```bash
-# 下载文件后，进入所在目录
-cd ~/Downloads
+# 克隆仓库
+git clone https://github.com/your-username/chatbox-react-sandbox.git
 
-# 启动本地服务器（任选一种）
-python3 -m http.server 8000
-# 或
+# 用浏览器直接打开
+open chatbox-react-sandbox.html
+```
+
+### 方式二：本地服务器
+
+```bash
+# 使用 Python
+python -m http.server 8080
+
+# 或使用 Node.js
 npx serve .
 ```
 
-浏览器打开 `http://localhost:8000/index.html`
+打开后，点击右上角 **设置** 按钮，填入你的 API Key 即可开始使用。
 
-> ⚠️ **不要直接双击打开**。`file://` 协议下浏览器会阻止 iframe 加载 CDN 脚本，导致可视化白屏。
+## ⚙️ 配置说明
 
-## API 配置
+### 快速预设
 
-点击界面右上角「设置」按钮，填写以下信息：
-
-| 字段 | 说明 |
-|------|------|
-| API 端点 | API 的 Base URL，如 `https://api.anthropic.com` |
-| API Key | 你的 API Key |
-| 模型名称 | 任意模型标识符，如 `claude-sonnet-4-20250514` |
-| API 格式 | 选择 Anthropic 或 OpenAI，必须与你的服务端一致 |
-
-### 常见配置示例
-
-| 平台 | Base URL | 模型名称 | 格式 |
-|------|----------|----------|------|
-| Anthropic 官方 | `https://api.anthropic.com` | `claude-sonnet-4-20250514` | Anthropic |
+| 预设 | 端点 | 默认模型 | API 格式 |
+|------|------|----------|----------|
+| Anthropic | `https://api.anthropic.com` | `claude-sonnet-4-20250514` | Anthropic |
 | OpenRouter | `https://openrouter.ai/api` | `anthropic/claude-sonnet-4` | Anthropic |
-| 自建 One API | `https://your-domain.com` | `claude-sonnet-4-20250514` | Anthropic |
-| OpenAI | `https://api.openai.com` | `gpt-4o` | OpenAI |
+| One API | 自定义域名 | `claude-sonnet-4-20250514` | Anthropic |
+| OpenAI 兼容 | `https://api.openai.com` | `gpt-4o` | OpenAI |
 
-配置会自动保存到浏览器 localStorage，刷新不丢失。
+### 自定义配置
 
-## React Sandbox 预装环境
+1. 填写 **API 端点**、**API Key** 和 **模型名称**
+2. 选择 **API 格式**（Anthropic 或 OpenAI）
+3. 输入 **配置名称** 后点击 **保存配置**，方便后续切换
 
-React 模式下 iframe 内可用的库：
+## 📖 使用方法
 
-| 库 | 版本 | 用途 |
-|----|------|------|
-| React | 18 | UI 框架 |
-| ReactDOM | 18 | 渲染 |
-| Babel Standalone | 7 | 浏览器内编译 JSX |
-| Recharts | 2.12 | 图表（折线图、柱状图、饼图等） |
-| Tailwind CSS | 2 | 样式 |
-| prop-types | 15 | Recharts 依赖 |
+### 基本对话
 
-Claude 生成的 JSX 代码只需 `export default` 导出一个函数组件即可渲染：
+直接输入文字即可与 AI 对话，和普通聊天工具无异。
 
-```jsx
-import { useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip } from 'recharts';
+### 生成可视化
 
-export default function App() {
-  const [data] = useState([
-    { name: 'A', value: 400 },
-    { name: 'B', value: 300 },
-  ]);
-  return (
-    <div className="p-6">
-      <PieChart width={300} height={300}>
-        <Pie data={data} dataKey="value" cx="50%" cy="50%">
-          <Cell fill="#6d5cff" />
-          <Cell fill="#34d399" />
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    </div>
-  );
-}
-```
+向 AI 提出包含可视化需求的请求，它会自动使用标记生成可交互的组件：
 
-## 聊天记录
+- *"用 React 做一个待办事项应用"*
+- *"用 Recharts 画一个折线图展示数据趋势"*
+- *"做一个交互式的颜色调色板工具"*
+- *"用 Chart.js 画一个柱状图展示季度销售"*
 
-设置面板中提供四种方式管理聊天记录：
+### 图片输入
 
-| 操作 | 说明 |
-|------|------|
-| 保存到浏览器 | 存入 localStorage，刷新页面后可恢复 |
-| 恢复记录 | 从 localStorage 读取并重新渲染对话 |
-| 导出 JSON | 下载完整对话为 `.json` 文件 |
-| 导入 JSON | 从文件恢复对话 |
+- 点击图片按钮上传图片
+- 或直接 **Ctrl+V** 粘贴剪贴板中的图片
+- 支持多张图片同时发送
 
-> 含大量图片的对话建议用导出 JSON 方式保存，localStorage 有约 5MB 限制。
+### 聊天记录
 
-## 已知限制
+- **保存到浏览器** — 将当前对话保存到 localStorage
+- **恢复记录** — 从 localStorage 恢复上次保存的对话
+- **导出 JSON** — 将对话导出为 JSON 文件
+- **导入 JSON** — 从 JSON 文件恢复对话
 
-- **CORS**：部分第三方中转站不支持浏览器直接调用（缺少 CORS 头），需要通过后端代理或使用支持 CORS 的中转站
-- **max_tokens**：默认设置为 131072，如果你的中转站有更低限制，可在代码中搜索 `max_tokens` 修改
-- **图标库**：Lucide React 的 UMD 包在 iframe sandbox 中有兼容性问题，已移除。图标改用 emoji 或内联 SVG
-- **代码截断**：如果 Claude 生成的代码过长超出 token 限制，闭合标记可能丢失。解析器有容错处理，会尝试渲染已有部分
-
-## 技术架构
+## 🏗️ 技术架构
 
 ```
-用户输入
-  ↓
-调用 API（不带 tools 参数，纯文本请求）
-  ↓
-Claude 回复（含 ~~~REACT_VIZ / ~~~HTML_VIZ 标记）
-  ↓
-parseResponse() 解析文本，分离普通文字和代码块
-  ↓
-├─ 文字 → 渲染为聊天气泡
-├─ HTML 代码 → Blob URL → iframe
-└─ JSX 代码 → buildReactSandboxHTML() → Blob URL → iframe
-                    ↓
-              iframe 内部：
-              顺序加载 React → ReactDOM → Babel → PropTypes → Recharts
-                    ↓
-              Babel 编译 JSX → new Function 执行 → ReactDOM 渲染
+单个 HTML 文件
+├── UI 层 — 原生 HTML/CSS/JS，暗色主题
+├── API 层 — 支持 Anthropic / OpenAI 两种协议
+├── 解析器 — 正则提取 ~~~HTML_VIZ / ~~~REACT_VIZ 标记
+├── HTML 沙盒 — Blob URL + iframe 隔离渲染
+└── React 沙盒 — CDN 加载 React 18 + Babel 实时编译
+     ├── React 18 + ReactDOM
+     ├── Babel Standalone (JSX → JS)
+     ├── Recharts 2.x
+     ├── Tailwind CSS 2.x
+     └── PropTypes
 ```
 
-## License
+**工作原理：** 通过 System Prompt 约定标记格式，AI 在普通文本中嵌入 `~~~REACT_VIZ` 或 `~~~HTML_VIZ` 代码块。前端解析器提取这些代码块，在 iframe 沙盒中安全渲染，实现无需 Tool Use 的可视化生成。
+
+## 🔒 安全
+
+- 所有可视化代码在 **iframe 沙盒** 中隔离运行
+- API Key 仅存储在浏览器本地 localStorage 中
+- 不会将 Key 发送到除配置端点以外的任何服务器
+
+## 📄 License
 
 MIT
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
