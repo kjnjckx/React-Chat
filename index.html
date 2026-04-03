@@ -110,15 +110,20 @@
   </div>
   <div class="cfg" id="cfgPanel">
     <div class="cfg-grid">
+      <div class="cfg-g fw"><span class="cfg-l">已保存的配置</span><div style="display:flex;gap:6px"><select class="cfg-i" id="cfgSelect" onchange="loadConfig()" style="flex:1"><option value="">+ 新建配置</option></select><button class="pre-b" id="delCfgBtn" onclick="deleteConfig()" style="display:none">删除</button></div></div>
+      <div class="cfg-g fw"><span class="cfg-l">配置名称</span><input class="cfg-i" id="cfgName" placeholder="例：我的 Claude API"/></div>
       <div class="cfg-g fw"><span class="cfg-l">API 端点 (Base URL)</span><input class="cfg-i" id="cfgBase" placeholder="https://api.anthropic.com" value="https://api.anthropic.com"/></div>
       <div class="cfg-g"><span class="cfg-l">API Key</span><input class="cfg-i" id="cfgKey" type="password" placeholder="sk-ant-... 或第三方 Key"/></div>
-      <div class="cfg-g"><span class="cfg-l">模型名称（可自由填写）</span><input class="cfg-i" id="cfgModel" placeholder="任意模型名称" value="claude-sonnet-4-20250514"/></div>
+      <div class="cfg-g"><span class="cfg-l">模型名称（可自由填写）</span><input class="cfg-i" id="cfgModel" placeholder="任意模型名称" value="[REDACTED]"/></div>
       <div class="cfg-g fw" style="margin-top:4px">
         <span class="cfg-l">API 格式</span>
         <div class="fmt-row">
           <label class="fmt-label"><input type="radio" name="apiFmt" value="anthropic" checked onchange="saveCfg()"> Anthropic (/v1/messages)</label>
           <label class="fmt-label"><input type="radio" name="apiFmt" value="openai" onchange="saveCfg()"> OpenAI (/v1/chat/completions)</label>
         </div>
+      </div>
+      <div class="pre-row">
+        <button class="pre-b" onclick="saveConfig()" style="background:var(--green);border-color:var(--green);color:#000;font-weight:600">保存配置</button>
       </div>
       <div class="pre-row">
         <span class="cfg-l" style="width:100%;margin-bottom:1px">快速预设</span>
@@ -161,6 +166,7 @@
     <div class="btns">
       <button class="img-btn" title="上传图片" onclick="document.getElementById('imgInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
       <button class="c-btn" title="清空对话" onclick="clr()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+      <button class="c-btn" id="webBtn" title="联网搜索" onclick="toggleWeb()" style="opacity:0.6">🔍</button>
       <button class="s-btn" id="sBtn" onclick="send()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
   </div>
@@ -340,22 +346,22 @@ function getFmt() {
   return s ? s.value : 'anthropic';
 }
 
-async function callAPI(msgs) {
+async function callAPI(msgs, searchContext = '') {
   const key = document.getElementById('cfgKey').value.trim();
   const base = document.getElementById('cfgBase').value.trim().replace(/\/+$/, '');
   const model = document.getElementById('cfgModel').value.trim();
   if (!key) { showErr('请先输入 API Key'); return null; }
   if (!model) { showErr('请填写模型名称'); return null; }
-  return getFmt() === 'openai' ? callOAI(base,key,model,msgs) : callAnth(base,key,model,msgs);
+  return getFmt() === 'openai' ? callOAI(base,key,model,msgs,searchContext) : callAnth(base,key,model,msgs,searchContext);
 }
 
-async function callAnth(base, key, model, msgs) {
+async function callAnth(base, key, model, msgs, searchContext = '') {
   const url = `${base}/v1/messages`;
+  const systemText = searchContext ? SYSTEM_PROMPT + '\n\n' + searchContext : SYSTEM_PROMPT;
   const body = {
     model,
     max_tokens: 131072,
-    // ★ 关键修复：system 用数组格式，兼容所有中转站
-    system: [{ type: "text", text: SYSTEM_PROMPT }],
+    system: [{ type: "text", text: systemText }],
     messages: msgs
   };
   console.log('[Anthropic] POST', url);
@@ -384,10 +390,11 @@ async function callAnth(base, key, model, msgs) {
   return data.content?.filter(b => b.type === 'text').map(b => b.text).join('\n') || '';
 }
 
-async function callOAI(base, key, model, msgs) {
+async function callOAI(base, key, model, msgs, searchContext = '') {
   // 转换消息格式：Anthropic 图片格式 → OpenAI 格式
+  const systemText = searchContext ? SYSTEM_PROMPT + '\n\n' + searchContext : SYSTEM_PROMPT;
   const oaiMsgs = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: systemText },
     ...msgs.map(m => {
       if (typeof m.content === 'string') return { role: m.role, content: m.content };
       // 多模态消息转换
@@ -467,6 +474,37 @@ function parseResponse(text) {
 
 
 // ══════════════════════════════════════════════════════
+// 联网搜索
+// ══════════════════════════════════════════════════════
+let webSearchEnabled = localStorage.getItem('sb3_webSearch') === 'true';
+
+function toggleWeb() {
+  webSearchEnabled = !webSearchEnabled;
+  localStorage.setItem('sb3_webSearch', webSearchEnabled);
+  const btn = document.getElementById('webBtn');
+  btn.style.opacity = webSearchEnabled ? '1' : '0.6';
+}
+
+async function searchWeb(query) {
+  try {
+    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&max_results=5`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (!data.RelatedTopics || data.RelatedTopics.length === 0) return '';
+
+    const results = data.RelatedTopics.slice(0, 3).map(item => {
+      const text = item.Text || item.Result || '';
+      return text.replace(/<[^>]*>/g, '').slice(0, 150);
+    }).filter(Boolean);
+
+    return results.length > 0 ? '【最新搜索结果】\n' + results.join('\n\n') : '';
+  } catch (e) {
+    console.error('Search error:', e);
+    return '';
+  }
+}
+
+// ══════════════════════════════════════════════════════
 // 发送 & 渲染
 // ══════════════════════════════════════════════════════
 async function send() {
@@ -499,8 +537,15 @@ async function send() {
 
   history.push({ role: 'user', content: userContent });
   setLd(true);
+
+  // 联网搜索
+  let searchContext = '';
+  if (webSearchEnabled && t) {
+    searchContext = await searchWeb(t);
+  }
+
   try {
-    const resp = await callAPI(history);
+    const resp = await callAPI(history, searchContext);
     if (resp !== null) {
       rmLd();
       history.push({ role: 'assistant', content: resp });
@@ -738,14 +783,110 @@ function sb() { const c = document.getElementById('chat'); requestAnimationFrame
 function ar(e) { e.style.height = '46px'; e.style.height = Math.min(e.scrollHeight, 150) + 'px'; }
 function useH(e) { document.getElementById('inp').value = e.textContent; send(); }
 
-// 配置持久化
+// ══════════════════════════════════════════════════════
+// 多配置管理
+// ══════════════════════════════════════════════════════
+const CONFIGS_KEY = 'sb3_configs';
+const CURRENT_CONFIG_KEY = 'sb3_currentConfig';
+
+function getConfigs() {
+  const data = localStorage.getItem(CONFIGS_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveConfigs(configs) {
+  localStorage.setItem(CONFIGS_KEY, JSON.stringify(configs));
+}
+
+function saveConfig() {
+  const name = document.getElementById('cfgName').value.trim();
+  if (!name) { alert('请输入配置名称'); return; }
+
+  const cfg = {
+    id: Date.now().toString(),
+    name,
+    base: document.getElementById('cfgBase').value,
+    key: document.getElementById('cfgKey').value,
+    model: document.getElementById('cfgModel').value,
+    fmt: document.querySelector('input[name="apiFmt"]:checked').value
+  };
+
+  const configs = getConfigs();
+  configs.push(cfg);
+  saveConfigs(configs);
+  refreshConfigSelect();
+  alert('配置已保存');
+  document.getElementById('cfgName').value = '';
+}
+
+function loadConfig() {
+  const select = document.getElementById('cfgSelect');
+  const id = select.value;
+  if (!id) return;
+
+  const configs = getConfigs();
+  const cfg = configs.find(c => c.id === id);
+  if (!cfg) return;
+
+  document.getElementById('cfgName').value = cfg.name;
+  document.getElementById('cfgBase').value = cfg.base;
+  document.getElementById('cfgKey').value = cfg.key;
+  document.getElementById('cfgModel').value = cfg.model;
+  document.querySelector(`input[name="apiFmt"][value="${cfg.fmt}"]`).checked = true;
+
+  localStorage.setItem(CURRENT_CONFIG_KEY, id);
+  document.getElementById('delCfgBtn').style.display = 'block';
+  saveCfg();
+}
+
+function deleteConfig() {
+  const select = document.getElementById('cfgSelect');
+  const id = select.value;
+  if (!id || !confirm('确定删除此配置？')) return;
+
+  const configs = getConfigs().filter(c => c.id !== id);
+  saveConfigs(configs);
+  refreshConfigSelect();
+  document.getElementById('delCfgBtn').style.display = 'none';
+  document.getElementById('cfgName').value = '';
+}
+
+function refreshConfigSelect() {
+  const select = document.getElementById('cfgSelect');
+  const configs = getConfigs();
+  const currentId = select.value;
+
+  select.innerHTML = '<option value="">+ 新建配置</option>';
+  configs.forEach(cfg => {
+    const opt = document.createElement('option');
+    opt.value = cfg.id;
+    opt.textContent = cfg.name;
+    select.appendChild(opt);
+  });
+
+  if (currentId && configs.find(c => c.id === currentId)) {
+    select.value = currentId;
+  }
+}
+
+// 初始化配置列表
 (function () {
+  refreshConfigSelect();
+  const lastId = localStorage.getItem(CURRENT_CONFIG_KEY);
+  if (lastId) {
+    document.getElementById('cfgSelect').value = lastId;
+    loadConfig();
+  }
+
   ['cfgBase', 'cfgKey', 'cfgModel'].forEach(id => {
     const v = localStorage.getItem('sb3_' + id); if (v) document.getElementById(id).value = v;
     document.getElementById(id).addEventListener('input', saveCfg);
   });
   const sf = localStorage.getItem('sb3_apiFmt');
   if (sf) { const r = document.querySelector(`input[name="apiFmt"][value="${sf}"]`); if (r) r.checked = true; }
+
+  // 初始化联网搜索按钮状态
+  if (webSearchEnabled) document.getElementById('webBtn').style.opacity = '1';
 })();
 </script>
 </body>
