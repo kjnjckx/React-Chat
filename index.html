@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>React Chat — React Sandbox</title>
+<title>Claude Chatbox — React Sandbox</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap');
   :root{
@@ -195,14 +195,7 @@
   </div>
   <div class="sidebar-list" id="sessionList"></div>
 </aside>
-<!-- ✅ 新增：打开侧边栏按钮 -->
-<button id="openSidebarBtn" class="open-sidebar-btn" title="打开侧边栏" onclick="toggleSidebar()">
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="3" y1="6" x2="21" y2="6"/>
-    <line x1="3" y1="12" x2="21" y2="12"/>
-    <line x1="3" y1="18" x2="21" y2="18"/>
-  </svg>
-</button>
+
 <!-- MAIN -->
 <div class="main">
   <div class="hdr">
@@ -211,7 +204,7 @@
         <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <h1><span class="dot"></span>React Chat-React Sandbox</span></h1>
+        <h1><span class="dot"></span>Claude Chatbox<span class="badge">React Sandbox</span></h1>
       </div>
       <button class="tog-btn" id="togBtn" onclick="togCfg()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>设置
@@ -321,6 +314,7 @@ const SYSTEM_PROMPT = [
   "6. ~~~HTML_VIZ 和 ~~~REACT_VIZ 标记必须独占一行",
   "7. 结束标记 ~~~ 也必须独占一行",
   "8. 标记外可以写正常解释文字",
+  "9. 【重要-配色】渲染环境背景为白色(#fff)，必须使用深色文字(如 text-gray-800、text-black、#1a1a2e 等)。绝对不要使用 text-white、text-gray-100 等浅色文字，也不要使用深色/黑色背景。整体配色应为：白色或浅色背景 + 深色文字，确保所有文字清晰可读。",
   "",
   "选择：图表→Recharts或Chart.js，交互应用→React，3D/Canvas→HTML，普通问答→不用标记",
   "",
