@@ -1,4 +1,4 @@
-# Claude Chatbox — React Sandbox
+# React Chat — React Sandbox
 
 一个轻量级、单文件的 AI 聊天界面，内置 React / HTML 可视化沙盒。无需 Tool Use，通过标记约定让 AI 直接在对话中生成可交互的 React 组件和 HTML 可视化。
 
@@ -79,8 +79,7 @@ npx serve .
 
 ### 聊天记录
 
-- **保存到浏览器** — 将当前对话保存到 localStorage
-- **恢复记录** — 从 localStorage 恢复上次保存的对话
+- **保存到侧边栏** - 可以随时打开以及关闭
 - **导出 JSON** — 将对话导出为 JSON 文件
 - **导入 JSON** — 从 JSON 文件恢复对话
 
