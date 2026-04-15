@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React Chatbox — React Sandbox</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap');
   :root{
@@ -15,7 +16,7 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'DM Sans',sans-serif;background:var(--bg-0);color:var(--text-0);height:100vh;display:flex;overflow:hidden}
-
+ 
   /* ══════ SIDEBAR ══════ */
   .sidebar{
     width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;
@@ -64,14 +65,16 @@
   .sidebar-item:hover .si-del{display:flex}
   .sidebar-item .si-del:hover{background:rgba(220,38,38,.1);color:var(--red)}
   .sidebar-empty{text-align:center;padding:40px 16px;color:var(--text-3);font-size:12px;line-height:1.8}
-
+ 
   .hamburger{
-    display:none;width:36px;height:36px;border-radius:var(--rs);
+    width:36px;height:36px;border-radius:var(--rs);
     border:1px solid var(--border);background:var(--bg-0);color:var(--text-1);
     cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;
+    display:none;
   }
   .hamburger svg{width:18px;height:18px}
-
+  .sidebar.collapsed ~ .main .hamburger{display:flex}
+ 
   @media(max-width:768px){
     .sidebar{position:fixed;left:0;top:0;box-shadow:4px 0 20px rgba(0,0,0,.12)}
     .sidebar.collapsed{margin-left:calc(var(--sidebar-w) * -1)}
@@ -79,10 +82,10 @@
     .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99}
     .sidebar-overlay.show{display:block}
   }
-
+ 
   /* ══════ MAIN AREA ══════ */
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-
+ 
   .hdr{padding:10px 20px;background:var(--bg-1);border-bottom:1px solid var(--border);flex-shrink:0}
   .hdr-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .hdr h1{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
@@ -175,10 +178,10 @@
 </style>
 </head>
 <body>
-
+ 
 <!-- SIDEBAR OVERLAY (mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
+ 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-hdr">
@@ -194,7 +197,7 @@
   </div>
   <div class="sidebar-list" id="sessionList"></div>
 </aside>
-
+ 
 <!-- MAIN -->
 <div class="main">
   <div class="hdr">
@@ -203,6 +206,7 @@
         <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
+        <h1><span class="dot"></span>React Chatbox<span class="badge">React Sandbox</span></h1>
       </div>
       <button class="tog-btn" id="togBtn" onclick="togCfg()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>设置
@@ -270,7 +274,7 @@
     </div>
   </div>
 </div>
-
+ 
 <script>
 // ══════════════════════════════════════════════════════
 // SYSTEM PROMPT
@@ -322,7 +326,7 @@ const SYSTEM_PROMPT = [
   "",
   "重要：保持代码精简！避免生成超长代码。如果需要展示复杂内容，简化数据和逻辑，确保完整输出。"
 ].join("\n");
-
+ 
 // ══════════════════════════════════════════════════════
 // REACT SANDBOX 模板
 // ══════════════════════════════════════════════════════
@@ -373,7 +377,7 @@ function buildReactSandboxHTML(jsxCode) {
     '<\/script></body></html>'
   ].join('\n');
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // API 调用
 // ══════════════════════════════════════════════════════
@@ -385,7 +389,7 @@ const PRESETS = {
 };
 let history = [], loading = false;
 let pendingImages = [];
-
+ 
 function handleImgUpload(e) {
   const files = Array.from(e.target.files);
   for (const file of files) {
@@ -401,7 +405,7 @@ function handleImgUpload(e) {
   }
   e.target.value = '';
 }
-
+ 
 function renderImgPreview() {
   const el = document.getElementById('imgPreview');
   if (pendingImages.length === 0) { el.innerHTML = ''; return; }
@@ -409,9 +413,9 @@ function renderImgPreview() {
     `<div class="img-preview-item"><img src="${img.dataUrl}" alt="${esc(img.name)}"><button class="img-rm" onclick="removeImg(${i})">×</button></div>`
   ).join('');
 }
-
+ 
 function removeImg(i) { pendingImages.splice(i, 1); renderImgPreview(); }
-
+ 
 document.addEventListener('paste', (e) => {
   const items = Array.from(e.clipboardData?.items || []);
   for (const item of items) {
@@ -429,9 +433,9 @@ document.addEventListener('paste', (e) => {
     }
   }
 });
-
+ 
 function getFmt() { const s = document.querySelector('input[name="apiFmt"]:checked'); return s ? s.value : 'anthropic'; }
-
+ 
 async function callAPI(msgs, searchContext = '') {
   const key = document.getElementById('cfgKey').value.trim();
   const base = document.getElementById('cfgBase').value.trim().replace(/\/+$/, '');
@@ -440,7 +444,7 @@ async function callAPI(msgs, searchContext = '') {
   if (!model) { showErr('请填写模型名称'); return null; }
   return getFmt() === 'openai' ? callOAI(base,key,model,msgs,searchContext) : callAnth(base,key,model,msgs,searchContext);
 }
-
+ 
 async function callAnth(base, key, model, msgs, searchContext = '') {
   const url = `${base}/v1/messages`;
   const systemText = searchContext ? SYSTEM_PROMPT + '\n\n' + searchContext : SYSTEM_PROMPT;
@@ -455,7 +459,7 @@ async function callAnth(base, key, model, msgs, searchContext = '') {
   const data = await r.json();
   return data.content?.filter(b => b.type === 'text').map(b => b.text).join('\n') || '';
 }
-
+ 
 async function callOAI(base, key, model, msgs, searchContext = '') {
   const systemText = searchContext ? SYSTEM_PROMPT + '\n\n' + searchContext : SYSTEM_PROMPT;
   const oaiMsgs = [
@@ -484,7 +488,7 @@ async function callOAI(base, key, model, msgs, searchContext = '') {
   const data = await r.json();
   return data.choices?.[0]?.message?.content || '';
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // 解析响应
 // ══════════════════════════════════════════════════════
@@ -515,7 +519,7 @@ function parseResponse(text) {
   if (parts.length === 0 && text.trim()) parts.push({ type: 'text', content: text.trim() });
   return parts;
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // 联网搜索
 // ══════════════════════════════════════════════════════
@@ -537,20 +541,20 @@ async function searchWeb(query) {
     return results.length > 0 ? '【最新搜索结果】\n' + results.join('\n\n') : '';
   } catch (e) { return ''; }
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // 会话管理 (Session Management)
 // ══════════════════════════════════════════════════════
 const SESSIONS_KEY = 'sb3_sessions';
 const ACTIVE_SESSION_KEY = 'sb3_activeSession';
 let currentSessionId = null;
-
+ 
 function getSessions() { try { const d = localStorage.getItem(SESSIONS_KEY); return d ? JSON.parse(d) : []; } catch { return []; } }
 function saveSessions(sessions) {
   try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); }
   catch (e) { if (e.name === 'QuotaExceededError') showErr('存储空间不足，请导出并删除旧会话'); }
 }
-
+ 
 function generateSessionTitle(hist) {
   if (!hist || hist.length === 0) return '新对话';
   const firstUser = hist.find(m => m.role === 'user');
@@ -560,7 +564,7 @@ function generateSessionTitle(hist) {
   else if (Array.isArray(firstUser.content)) text = firstUser.content.filter(b => b.type === 'text').map(b => b.text).join(' ');
   return text.slice(0, 40) || '新对话';
 }
-
+ 
 function formatTime(ts) {
   const d = new Date(ts), diff = Date.now() - ts;
   if (diff < 60000) return '刚刚';
@@ -569,7 +573,7 @@ function formatTime(ts) {
   if (diff < 604800000) return Math.floor(diff/86400000) + ' 天前';
   return d.toLocaleDateString('zh-CN', { month:'short', day:'numeric' });
 }
-
+ 
 const HINT_HTML = `<div class="hint" id="hint">
   <h2>React Sandbox — 兼容所有中转站</h2>
   <p>无需 Tool Use，通过标记约定实现可视化<br/>支持 HTML + React 两种模式</p>
@@ -580,7 +584,7 @@ const HINT_HTML = `<div class="hint" id="hint">
     <div class="h-c" onclick="useH(this)">用 Chart.js 画一个柱状图展示季度销售</div>
   </div>
 </div>`;
-
+ 
 function newSession() {
   saveCurrentSession();
   const session = { id: Date.now().toString(), title: '新对话', updatedAt: Date.now(), history: [] };
@@ -593,7 +597,7 @@ function newSession() {
   document.getElementById('chat').innerHTML = HINT_HTML;
   renderSessionList();
 }
-
+ 
 function switchSession(id) {
   if (id === currentSessionId) return;
   saveCurrentSession();
@@ -607,7 +611,7 @@ function switchSession(id) {
   renderSessionList();
   if (window.innerWidth <= 768) toggleSidebar();
 }
-
+ 
 function deleteSession(id, e) {
   e.stopPropagation();
   if (!confirm('确定删除此会话？')) return;
@@ -619,7 +623,7 @@ function deleteSession(id, e) {
   }
   renderSessionList();
 }
-
+ 
 function saveCurrentSession() {
   if (!currentSessionId) return;
   const sessions = getSessions();
@@ -640,7 +644,7 @@ function saveCurrentSession() {
   sessions[idx].updatedAt = Date.now();
   saveSessions(sessions);
 }
-
+ 
 function renderSessionList() {
   const el = document.getElementById('sessionList');
   const sessions = getSessions();
@@ -653,25 +657,29 @@ function renderSessionList() {
     </div>
   `).join('');
 }
-
+ 
 function autoSave() {
   if (currentSessionId && history.length > 0) { saveCurrentSession(); renderSessionList(); }
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // SIDEBAR TOGGLE
 // ══════════════════════════════════════════════════════
-let sidebarOpen = localStorage.getItem('sb3_sidebarOpen') !== 'false';
+let sidebarOpen = localStorage.getItem('sb3_sidebarOpen') === 'true';
 
 function toggleSidebar() {
   sidebarOpen = !sidebarOpen;
-  localStorage.setItem('sb3_sidebarOpen', sidebarOpen);
+  localStorage.setItem('sb3_sidebarOpen', String(sidebarOpen));
   document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
   document.getElementById('sidebarOverlay').classList.toggle('show', sidebarOpen && window.innerWidth <= 768);
+  document.getElementById('hamburgerBtn').style.display = sidebarOpen ? 'none' : 'flex';
 }
 
-if (!sidebarOpen) document.getElementById('sidebar').classList.add('collapsed');
-
+if (!sidebarOpen) {
+  document.getElementById('sidebar').classList.add('collapsed');
+  document.getElementById('hamburgerBtn').style.display = 'flex';
+}
+ 
 // ══════════════════════════════════════════════════════
 // 发送 & 渲染
 // ══════════════════════════════════════════════════════
@@ -681,7 +689,7 @@ async function send() {
   const imgs = [...pendingImages];
   if ((!t && imgs.length === 0) || loading) return;
   const h = document.getElementById('hint'); if (h) h.remove();
-
+ 
   if (!currentSessionId) {
     const session = { id: Date.now().toString(), title: '新对话', updatedAt: Date.now(), history: [] };
     const sessions = getSessions(); sessions.unshift(session); saveSessions(sessions);
@@ -689,24 +697,24 @@ async function send() {
     localStorage.setItem(ACTIVE_SESSION_KEY, currentSessionId);
     renderSessionList();
   }
-
+ 
   addU(t, imgs);
   inp.value = ''; inp.style.height = '46px';
   pendingImages = []; renderImgPreview();
-
+ 
   let userContent;
   if (imgs.length > 0) {
     userContent = [];
     for (const img of imgs) userContent.push({ type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } });
     if (t) userContent.push({ type: 'text', text: t });
   } else { userContent = t; }
-
+ 
   history.push({ role: 'user', content: userContent });
   setLd(true);
-
+ 
   let searchContext = '';
   if (webSearchEnabled && t) searchContext = await searchWeb(t);
-
+ 
   try {
     const resp = await callAPI(history, searchContext);
     if (resp !== null) {
@@ -723,12 +731,12 @@ async function send() {
   } catch (e) { showErr(e.message); setConn(false); history.pop(); }
   finally { setLd(false); }
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // 渲染引擎
 // ══════════════════════════════════════════════════════
 const vizCodeStore = {};
-
+ 
 function renderHTML(title, code, h) {
   const el = document.getElementById('chat'), d = document.createElement('div'); d.className = 'msg';
   const id = 'v' + Date.now() + Math.random().toString(36).slice(2, 5);
@@ -740,7 +748,7 @@ function renderHTML(title, code, h) {
   const burl = URL.createObjectURL(blob);
   ifr.src = burl; setupH(ifr, burl); sb();
 }
-
+ 
 function renderReact(title, jsxCode, h) {
   const el = document.getElementById('chat'), d = document.createElement('div'); d.className = 'msg';
   const id = 'v' + Date.now() + Math.random().toString(36).slice(2, 5);
@@ -753,7 +761,7 @@ function renderReact(title, jsxCode, h) {
   const burl = URL.createObjectURL(blob);
   ifr.src = burl; setupH(ifr, burl); sb();
 }
-
+ 
 function downloadCode(vizId) {
   const entry = vizCodeStore[vizId]; if (!entry) { showErr('找不到源码'); return; }
   const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
@@ -763,7 +771,7 @@ function downloadCode(vizId) {
   const a = document.createElement('a'); a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-
+ 
 function setupH(ifr, burl) {
   window.addEventListener('message', (e) => {
     if (e.source === ifr.contentWindow && e.data?.type === 'sandbox-height') { const h = Math.min(e.data.height + 10, 800); if (h > 50) ifr.style.height = h + 'px'; }
@@ -773,7 +781,7 @@ function setupH(ifr, burl) {
     try { const d = ifr.contentDocument; if (d) { const ch = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight); if (ch > 50) ifr.style.height = Math.min(ch + 20, 800) + 'px'; } } catch (e) {}
   };
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // UI helpers
 // ══════════════════════════════════════════════════════
@@ -804,7 +812,7 @@ function setConn(ok) {
   document.getElementById('connT').textContent = ok ? '已连接 — ' + document.getElementById('cfgModel').value : '连接失败';
 }
 function clr() { history = []; document.getElementById('chat').innerHTML = ''; pendingImages = []; renderImgPreview(); autoSave(); }
-
+ 
 // ══════════════════════════════════════════════════════
 // 导出/导入
 // ══════════════════════════════════════════════════════
@@ -816,7 +824,7 @@ function exportChat() {
   a.download = `chat-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}.json`;
   a.href = url; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-
+ 
 function importChat(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
@@ -830,7 +838,7 @@ function importChat(e) {
   };
   reader.readAsText(file); e.target.value = '';
 }
-
+ 
 function replayHistory() {
   document.getElementById('chat').innerHTML = '';
   if (history.length === 0) { document.getElementById('chat').innerHTML = HINT_HTML; return; }
@@ -855,7 +863,7 @@ function replayHistory() {
     }
   }
 }
-
+ 
 function showSuccess(m) {
   document.querySelectorAll('.toast').forEach(e => e.remove());
   const d = document.createElement('div'); d.className = 'toast';
@@ -874,16 +882,16 @@ function ft(t) {
 function sb() { const c = document.getElementById('chat'); requestAnimationFrame(() => c.scrollTop = c.scrollHeight); }
 function ar(e) { e.style.height = '46px'; e.style.height = Math.min(e.scrollHeight, 150) + 'px'; }
 function useH(e) { document.getElementById('inp').value = e.textContent; send(); }
-
+ 
 // ══════════════════════════════════════════════════════
 // 多配置管理
 // ══════════════════════════════════════════════════════
 const CONFIGS_KEY = 'sb3_configs';
 const CURRENT_CONFIG_KEY = 'sb3_currentConfig';
-
+ 
 function getConfigs() { const data = localStorage.getItem(CONFIGS_KEY); return data ? JSON.parse(data) : []; }
 function saveConfigs(configs) { localStorage.setItem(CONFIGS_KEY, JSON.stringify(configs)); }
-
+ 
 function saveConfig() {
   const name = document.getElementById('cfgName').value.trim();
   if (!name) { alert('请输入配置名称'); return; }
@@ -891,7 +899,7 @@ function saveConfig() {
   const configs = getConfigs(); configs.push(cfg); saveConfigs(configs);
   refreshConfigSelect(); alert('配置已保存'); document.getElementById('cfgName').value = '';
 }
-
+ 
 function loadConfig() {
   const select = document.getElementById('cfgSelect'); const id = select.value; if (!id) return;
   const configs = getConfigs(); const cfg = configs.find(c => c.id === id); if (!cfg) return;
@@ -900,21 +908,21 @@ function loadConfig() {
   document.querySelector(`input[name="apiFmt"][value="${cfg.fmt}"]`).checked = true;
   localStorage.setItem(CURRENT_CONFIG_KEY, id); document.getElementById('delCfgBtn').style.display = 'block'; saveCfg();
 }
-
+ 
 function deleteConfig() {
   const select = document.getElementById('cfgSelect'); const id = select.value;
   if (!id || !confirm('确定删除此配置？')) return;
   const configs = getConfigs().filter(c => c.id !== id); saveConfigs(configs);
   refreshConfigSelect(); document.getElementById('delCfgBtn').style.display = 'none'; document.getElementById('cfgName').value = '';
 }
-
+ 
 function refreshConfigSelect() {
   const select = document.getElementById('cfgSelect'); const configs = getConfigs(); const currentId = select.value;
   select.innerHTML = '<option value="">+ 新建配置</option>';
   configs.forEach(cfg => { const opt = document.createElement('option'); opt.value = cfg.id; opt.textContent = cfg.name; select.appendChild(opt); });
   if (currentId && configs.find(c => c.id === currentId)) select.value = currentId;
 }
-
+ 
 // ══════════════════════════════════════════════════════
 // 初始化
 // ══════════════════════════════════════════════════════
@@ -922,7 +930,7 @@ function refreshConfigSelect() {
   refreshConfigSelect();
   const lastId = localStorage.getItem(CURRENT_CONFIG_KEY);
   if (lastId) { document.getElementById('cfgSelect').value = lastId; loadConfig(); }
-
+ 
   ['cfgBase', 'cfgKey', 'cfgModel'].forEach(id => {
     const v = localStorage.getItem('sb3_' + id); if (v) document.getElementById(id).value = v;
     document.getElementById(id).addEventListener('input', saveCfg);
@@ -930,7 +938,7 @@ function refreshConfigSelect() {
   const sf = localStorage.getItem('sb3_apiFmt');
   if (sf) { const r = document.querySelector(`input[name="apiFmt"][value="${sf}"]`); if (r) r.checked = true; }
   if (webSearchEnabled) document.getElementById('webBtn').style.opacity = '1';
-
+ 
   // Session init
   const sessions = getSessions();
   const activeId = localStorage.getItem(ACTIVE_SESSION_KEY);
